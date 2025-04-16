@@ -1,0 +1,9 @@
+filebeat.inputs:
+  - type: syslog
+    protocol.udp:
+      host: "0.0.0.0:514"
+    format: auto
+    tags: ["fortigate"]
+
+output.logstash:
+  hosts: ["<IP-LOGSTASH>:5044"]

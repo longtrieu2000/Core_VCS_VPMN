@@ -1,0 +1,45 @@
+{
+  "index_patterns": ["logstash-*"],
+  "template": {
+    "settings": {
+      "number_of_shards": 1,
+      "number_of_replicas": 0
+    },
+    "mappings": {
+      "dynamic": true,
+      "properties": {
+        "@timestamp": {
+          "type": "date"
+        },
+        "host": {
+          "type": "keyword"
+        },
+        "log_level": {
+          "type": "keyword"
+        },
+        "message": {
+          "type": "text"
+        },
+        "status_code": {
+          "type": "integer"
+        },
+        "response_time": {
+          "type": "float"
+        },
+        "path": {
+          "type": "keyword"
+        },
+        "user_agent": {
+          "type": "text"
+        },
+        "client_ip": {
+          "type": "ip"
+        }
+      }
+    }
+  },
+  "priority": 1,
+  "_meta": {
+    "description": "Logstash index template for structured logging"
+  }
+}

@@ -1,0 +1,89 @@
+version: "3"
+services:
+  vault:
+    image: hashicorp/vault:latest
+    container_name: key_manage_vpmn
+    restart: always
+    cap_add:
+      - IPC_LOCK
+    env_file:
+      - .env
+    environment:
+      #VAULT_DEV_ROOT_TOKEN_ID: "root"
+      VAULT_ADDR: "http://127.0.0.1:8200"
+      VAULT_DB_USER: ${VAULT_DB_USER}
+      VAULT_DB_PASS: ${VAULT_DB_PASS}
+      VAULT_DB_HOST: ${VAULT_DB_HOST}
+      VAULT_DB_NAME: ${VAULT_DB_NAME}
+    ports:
+      - "8200:8200"
+    volumes:
+      - ./Vault/data:/vault/data
+      - ./Vault/config/config.hcl:/vault/config/config.hcl
+    command: "server"
+    networks:
+      - coredev
+
+  jira:
+    image: haxqer/jira:9.17.5
+    container_name: Jira_vpmn
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "9010:8080"
+    volumes:
+      - ./Jira/data:/var/jira/data 
+    depends_on:
+      - postgres
+    environment:
+      - TZ=Asia/Ho_Chi_Minh
+      - ALT_JDBC_DRIVER=org.postgresql.Driver 
+      - ALL_DB_TYPE=postgres16
+      - ALL_JDBC_URL=jdbc:postgres://postgresql:5432/${JIRA_DB_NAME}
+      - ALL_JDBC_USER= ${JIRA_DB_USER}         
+      - ALL_JDBC_PASSWORD= ${JIRA_DB_PASS} 
+      - ALL_DB_SCHEMA=public 
+    networks:
+      - coredev
+
+  postgresql:
+    image: postgres:16
+    container_name: postgres
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./Postgresql/data:/var/lib/postgresql/data
+      - ./Postgresql/log:/var/log/postgresql
+      - ./Postgresql/config/postgresql.conf:/etc/postgresql/config/postgresql.conf
+      - ./Postgresql/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    command: -c config_file=/etc/postgresql/config/postgresql.conf
+    networks:
+      - coredev
+      
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    restart: always
+    env_file:
+      - .env
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "8080:80"
+    depends_on:
+      - postgresql
+    networks:
+      - coredev   
+
+networks:
+  coredev: 
+    external: true #day la network dc tao ngoai docker va ko can tao lai

@@ -1,0 +1,29 @@
+filebeat.inputs:
+#- type: mqtt
+#  hosts:
+#    - tcp://mosquitto:1883
+#  username: admin
+#  password: 8Ff@jvkv
+#  topics: ["#"]
+
+- type: log
+  paths:
+    #- /nginx/log/*.log
+    - /postgres/logs/*.log
+
+output.logstash:
+  hosts: ["logstash:5044"]
+
+filebeat.config.inputs:
+  enabled: true
+  path: /usr/share/filebeat/*.yml
+  reload.enabled: true
+  reload.period: 30s
+  
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: /var/log/filebeat
+  name: filebeat
+  keepfiles: 7
+  permissions: 0640

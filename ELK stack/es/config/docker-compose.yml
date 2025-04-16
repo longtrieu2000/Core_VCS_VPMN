@@ -1,0 +1,110 @@
+version: '3.9'
+
+services:
+  elastic:
+    extends:
+      file: common.yml
+      service: common
+    image: elasticsearch:7.17.0
+    container_name: elastic
+    environment:
+      - node.name=es01
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=es02,es03
+      - cluster.initial_master_nodes=es01,es02,es03
+      -# discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - xpack.security.enabled=false
+      - xpack.monitoring.enabled=true
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+    volumes:
+      - ./es/data/es01:/usr/share/elasticsearch/data
+      - ./es/config/jvm.options.d:/usr/share/elasticsearch/config/jvm.options.d/
+    ports:
+      - 9200:9200
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 65535
+        hard: 65535
+      memlock:
+        soft: -1
+        hard: -1
+    #mem_limit: '16gb'
+    cap_add:
+      - IPC_LOCK
+    networks: 
+      - coredev
+
+  es02:
+    image: elasticsearch:7.17.0
+    container_name: es02
+    extends:
+      file: common.yml
+      service: common
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+    environment:
+      - node.name=es02
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=es01,es03
+      - cluster.initial_master_nodes=es01,es02,es03
+      - bootstrap.memory_lock=true
+      - xpack.security.enabled=false
+      - xpack.monitoring.enabled=true
+    volumes:
+      - ./es/data/es02:/usr/share/elasticsearch/data
+      - ./es/config/jvm.options.d:/usr/share/elasticsearch/config/jvm.options.d/
+    ulimits:
+      #nproc: 65535
+      #nofile:
+      #  soft: 65535
+      #  hard: 65535
+      memlock:
+        soft: -1
+        hard: -1
+    #mem_limit: '16gb'
+    cap_add:
+      - IPC_LOCK
+    networks: 
+      - coredev
+
+  es03:
+    image: elasticsearch:7.17.0
+    container_name: es03
+    extends:
+      file: common.yml
+      service: common
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+    environment:
+      - node.name=es03
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=es01,es02
+      - cluster.initial_master_nodes=es01,es02,es03
+      - bootstrap.memory_lock=true
+      - xpack.security.enabled=false
+      - xpack.monitoring.enabled=true
+    volumes:
+      - ./es/data/es03:/usr/share/elasticsearch/data
+      - ./es/config/jvm.options.d:/usr/share/elasticsearch/config/jvm.options.d/
+    ulimits:
+      #nproc: 65535
+      #nofile:
+      #  soft: 65535
+      #  hard: 65535
+      memlock:
+        soft: -1
+        hard: -1
+    #mem_limit: '16gb'
+    cap_add:
+      - IPC_LOCK
+    networks: 
+      - coredev

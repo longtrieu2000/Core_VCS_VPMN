@@ -1,0 +1,2 @@
+xpack.monitoring.enabled: false
+xpack.monitoring.elasticsearch.url: elastic:9200  #server elasticsearch

@@ -1,0 +1,99 @@
+version: "2.4"
+services: 
+  kibana:
+    extends:
+      file: common.yml
+      service: common
+    container_name: kibana
+    image: docker.elastic.co/kibana/kibana:7.17.0
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+   networks: 
+      - coredev
+
+  filebeat:
+    extends:
+      file: common.yml
+      service: common
+    user: root
+    image: elastic/filebeat:7.17.0
+    container_name: filebeat
+    #ports:
+    #  - "514:514/udp"
+    volumes:
+      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - ./filebeat/log:/var/log/filebeat
+     # - ./nginx/log:/nginx/log
+      - /home/longth22/dev/Docker/Docker/Postgresql/log:/postgres/logs
+    command: ["--strict.perms=false"]
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks: 
+      - coredev
+
+  logstash:
+    extends:
+      file: common.yml
+      service: common
+    container_name: logstash
+    image: logstash:7.17.0
+    environment:
+      - "LS_JAVA_OPTS=-Xmx256M -Xms256M"
+      - config.reload.automatic=true
+      - config.reload.interval=5s
+    mem_limit: 1g
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - ./logstash/conf.d:/usr/share/logstash/pipeline
+      - ./logstash/logstash.template.json:/usr/share/logstash/templates/logstash.template.json
+      - ./logstash/logstash.yml:/usr/share/logstash/config/logstash.yml
+      - /var/run/docker.sock:/host_docker/docker.sock
+      - /var/lib/docker:/var/lib/docker:ro
+    networks: 
+      - coredev
+
+  elastic:
+    extends:
+      file: common.yml
+      service: common
+    image: elasticsearch:7.17.0
+    container_name: elastic
+    environment:
+      - node.name=es01
+      - cluster.name=es-docker-cluster
+      #- discovery.seed_hosts=es02,es03
+      #- cluster.initial_master_nodes=es01,es02,es03
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - xpack.security.enabled=false
+      - xpack.monitoring.enabled=true
+    volumes:
+      - ./es/data:/usr/share/elasticsearch/data
+      - ./es/config/jvm.options.d:/usr/share/elasticsearch/config/jvm.options.d/
+    ports:
+      - 9200:9200
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 65535
+        hard: 65535
+      memlock:
+        soft: -1
+        hard: -1
+    #mem_limit: '16gb'
+    cap_add:
+      - IPC_LOCK
+    networks: 
+      - coredev
+
+networks:
+  coredev:
+    driver: bridge
+
