@@ -1,0 +1,51 @@
+version: "3"
+services: 
+  prometheus:
+    image: prom/prometheus:v2.41.0
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana:9.3.2
+    ports:
+      - 3000:3000
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=devops123
+    volumes:
+      - ./grafana/datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+      - grafana:/var/lib/grafana
+
+  cadvisor:
+    image: google/cadvisor:latest
+    container_name: mysafe_cadvisor
+   # network_mode: host
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    ports:
+      - "9000:8080"
+    restart: always
+
+  blackbox:
+    image: prom/blackbox-exporter
+    container_name: mysafe_URL
+    privileged: true
+    restart: always
+    tty: true
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.${COMPOSE_PROJECT_NAME}-backbox.rule=Host(`blackbox_exporter`)
+      - traefik.http.services.${COMPOSE_PROJECT_NAME}-backbox.loadbalancer.server.port=9115
+    ports:
+      - 9115:9115
+    #dns: 8.8.8.8
+    volumes:
+      - ./blackbox/blackbox.yml:/etc/blackbox/conf.yml
+      
+volumes:
+  grafana:
