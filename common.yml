@@ -1,0 +1,15 @@
+version: "2.4"
+services:
+  common:
+    environment:
+      - TZ=Asia/Ho_Chi_Minh
+      - LANG=en_US.UTF-8
+    #  - LC_ALL=en_US.UTF-8
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    restart: always
+    
+    #restart: unless-stopped
