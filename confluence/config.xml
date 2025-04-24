@@ -1,0 +1,19 @@
+
+<?xml version="1.0" encoding="UTF-8"?>
+<confluence-configuration>
+    <setupStep>complete</setupStep>
+    <buildNumber>9210</buildNumber> <!-- bản 8.9.0 -->
+    <baseUrl>http://localhost:9090</baseUrl>
+    <webServerPort>9090</webServerPort>
+    <webServerSecure>false</webServerSecure>
+    <webServerRedirectPort>8443</webServerRedirectPort>
+    <database>
+        <hibernate dialect="org.hibernate.dialect.PostgreSQLDialect"/>
+        <jdbc-datasource>
+            <url>jdbc:postgresql://confluence_db:5432/confluencedb</url>
+            <driver-class>org.postgresql.Driver</driver-class>
+            <username>confluence</username>
+            <password>confluence_pass</password>
+        </jdbc-datasource>
+    </database>
+</confluence-configuration>

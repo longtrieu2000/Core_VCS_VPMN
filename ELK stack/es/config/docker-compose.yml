@@ -12,10 +12,13 @@ services:
       - cluster.name=es-docker-cluster
       - discovery.seed_hosts=es02,es03
       - cluster.initial_master_nodes=es01,es02,es03
-      -# discovery.type=single-node
+      # discovery.type=single-node
       - bootstrap.memory_lock=true
       - xpack.security.enabled=false
       - xpack.monitoring.enabled=true
+      - VIRTUAL_HOST=elastic.vcs.vpmn
+      - LETSENCRYPT_HOST=elastic.vcs.vpmn
+      #LETSENCRYPT_EMAIL
     deploy:
       resources:
         limits:

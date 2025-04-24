@@ -1,22 +1,30 @@
 version: '3'
 services:
   jira:
-    image: atalassian/jira-software:latest
+    image: haxqer/jira:9.17.5
     container_name: Jira_vpmn
-    restarts: unless_stopped
+    restart: unless-stopped
     env_file:
       - .env
     ports:
       - "9010:8080"
+    deploy:
+      resources:
+        limits:
+          memory: 4g
     volumes:
-      - ./Jira/data:/var/atlassian/application-data/jira
+      - ./Jira/data:/var/jira/data
+      - ./Jira/jira-config.properties:/var/jira/jira-config.properties
     depends_on:
-      - postgres
+      - postgresql
     environment:
-      - ALL_DB_TYPE=postgres16
+      - TZ=Asia/Ho_Chi_Minh
+      - ALT_JDBC_DRIVER=org.postgresql.Driver
+      - ALL_DB_TYPE=postgres15
       - ALL_JDBC_URL=jdbc:postgres://postgresql:5432/${JIRA_DB_NAME}
-      - ALL_JDBC_USER= ${JIRA_DB_USER}         
-      - ALL_JDBC_PASSWORD= ${JIRA_DB_PASS} 
+      - ALL_JDBC_USER=${JIRA_DB_USER}
+      - ALL_JDBC_PASSWORD=${JIRA_DB_PASS}
+      - ALL_DB_SCHEMA=public
     networks:
       - coredev
 networks:

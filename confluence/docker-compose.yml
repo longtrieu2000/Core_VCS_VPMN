@@ -1,0 +1,36 @@
+version: '3'
+services:
+  confluence:
+    image: haxqer/confluence:9.2.1
+    container_name: confluence_vpmn
+    ports:
+      - "9090:8090"
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+    env_file:
+      - .env
+    environment:
+      - TZ=Asia/Ho_Chi_Minh
+      - ATLASSIAN_HOME=/var/confluence
+      - JVM_SUPPORT_RECOMMENDED_ARGS=-Datlassian.plugins.enable.wait=300
+      - ALL_DB_TYPE=postgres15
+      - ALL_JDBC_URL=jdbc:postgres://postgresql:5432/${CONFLUENCE_DB_NAME}
+      - ALL_JDBC_USER=${CONFLUENCE_DB_USER}         
+      - ALL_JDBC_PASSWORD=${CONFLUENCE_DB_PASS} 
+    volumes:
+      - confluence_data:/var/confluence
+      #- ./config.xml:/var/atlassian/application-data/confluence/config.xml
+    #depends_on:
+    #  - jira
+    networks:
+      - coredev
+    restart: unless-stopped
+
+networks:
+  coredev: 
+    external: true
+
+volumes:
+  confluence_data:

@@ -1,99 +1,95 @@
-version: "2.4"
-services: 
-  kibana:
-    extends:
-      file: common.yml
-      service: common
-    container_name: kibana
-    image: docker.elastic.co/kibana/kibana:7.17.0
-    ports:
-      - "5601:5601"
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-   networks: 
-      - coredev
-
-  filebeat:
-    extends:
-      file: common.yml
-      service: common
-    user: root
-    image: elastic/filebeat:7.17.0
-    container_name: filebeat
-    #ports:
-    #  - "514:514/udp"
-    volumes:
-      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
-      - ./filebeat/log:/var/log/filebeat
-     # - ./nginx/log:/nginx/log
-      - /home/longth22/dev/Docker/Docker/Postgresql/log:/postgres/logs
-    command: ["--strict.perms=false"]
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    networks: 
-      - coredev
-
-  logstash:
-    extends:
-      file: common.yml
-      service: common
-    container_name: logstash
-    image: logstash:7.17.0
-    environment:
-      - "LS_JAVA_OPTS=-Xmx256M -Xms256M"
-      - config.reload.automatic=true
-      - config.reload.interval=5s
-    mem_limit: 1g
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    volumes:
-      - ./logstash/conf.d:/usr/share/logstash/pipeline
-      - ./logstash/logstash.template.json:/usr/share/logstash/templates/logstash.template.json
-      - ./logstash/logstash.yml:/usr/share/logstash/config/logstash.yml
-      - /var/run/docker.sock:/host_docker/docker.sock
-      - /var/lib/docker:/var/lib/docker:ro
-    networks: 
-      - coredev
-
-  elastic:
-    extends:
-      file: common.yml
-      service: common
-    image: elasticsearch:7.17.0
-    container_name: elastic
-    environment:
-      - node.name=es01
-      - cluster.name=es-docker-cluster
-      #- discovery.seed_hosts=es02,es03
-      #- cluster.initial_master_nodes=es01,es02,es03
-      - discovery.type=single-node
-      - bootstrap.memory_lock=true
-      - xpack.security.enabled=false
-      - xpack.monitoring.enabled=true
-    volumes:
-      - ./es/data:/usr/share/elasticsearch/data
-      - ./es/config/jvm.options.d:/usr/share/elasticsearch/config/jvm.options.d/
-    ports:
-      - 9200:9200
-    ulimits:
-      nproc: 65535
-      nofile:
-        soft: 65535
-        hard: 65535
-      memlock:
-        soft: -1
-        hard: -1
-    #mem_limit: '16gb'
+version: "3"
+services:
+  vault:
+    image: hashicorp/vault:latest
+    container_name: key_manage_vpmn
+    restart: always
     cap_add:
       - IPC_LOCK
-    networks: 
+    env_file:
+      - .env
+    environment:
+      #VAULT_DEV_ROOT_TOKEN_ID: "root"
+      VAULT_ADDR: "http://127.0.0.1:8200"
+      VAULT_DB_USER: ${VAULT_DB_USER}
+      VAULT_DB_PASS: ${VAULT_DB_PASS}
+      VAULT_DB_HOST: ${VAULT_DB_HOST}
+      VAULT_DB_NAME: ${VAULT_DB_NAME}
+    ports:
+      - "8200:8200"
+    volumes:
+      - ./Vault/data:/vault/data
+      - ./Vault/config/config.hcl:/vault/config/config.hcl
+    command: "server"
+    networks:
+      - coredev
+
+  jira:
+    image: haxqer/jira:9.17.5
+    container_name: Jira_vpmn
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "9010:8080"
+    deploy:
+      resources:
+        limits:
+          memory: 4g
+    volumes:
+      - ./Jira/data:/var/jira/data
+    depends_on:
+      - postgresql
+    environment:
+      - TZ=Asia/Ho_Chi_Minh
+      - ALT_JDBC_DRIVER=org.postgresql.Driver
+      - ALL_DB_TYPE=postgres15
+      - ALL_JDBC_URL=jdbc:postgres://postgresql:5432/${JIRA_DB_NAME}
+      - ALL_JDBC_USER=${JIRA_DB_USER}
+      - ALL_JDBC_PASSWORD=${JIRA_DB_PASS}
+      - ALL_DB_SCHEMA=public
+    networks:
+      - coredev
+
+  postgresql:
+    image: postgres:15
+    container_name: postgres
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - TZ=Asia/Ho_Chi_Minh
+      - LANG=en_US.UTF-8
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./Postgresql/data:/var/lib/postgresql/data
+      - ./Postgresql/log:/var/log/postgresql
+      - ./Postgresql/config/postgresql.conf:/etc/postgresql/config/postgresql.conf
+      - ./Postgresql/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    command: -c config_file=/etc/postgresql/config/postgresql.conf
+    networks:
+      - coredev
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    restart: always
+    env_file:
+      - .env
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "8080:80"
+    depends_on:
+      - postgresql
+    networks:
       - coredev
 
 networks:
   coredev:
-    driver: bridge
-
+    external: true #day la network dc tao ngoai docker va ko can tao lai

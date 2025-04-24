@@ -8,6 +8,12 @@ CREATE USER jira_user WITH PASSWORD 'jira123qweA@';
 GRANT ALL PRIVILEGES  on DATABASE jira_db to jira_user;
 alter DATABASE jira_db owner to jira_user;
 
+CREATE DATABASE confluence_db;
+CREATE USER confluence_user WITH PASSWORD 'confluence123qweA@';
+GRANT ALL PRIVILEGES  on DATABASE confluence_db to confluence_user;
+alter DATABASE confluence_db owner to confluence_user;
+
+
 CREATE TABLE vault_kv_store (
   parent_path TEXT COLLATE "C" NOT NULL,
   path        TEXT COLLATE "C",

@@ -32,31 +32,68 @@ services:
       - .env
     ports:
       - "9010:8080"
+    deploy:
+      resources:
+        limits:
+          memory: 4g
     volumes:
-      - ./Jira/data:/var/jira/data 
+      - ./Jira/data:/var/jira/data
+      - ./Jira/jira-config.properties:/var/jira/jira-config.properties
     depends_on:
-      - postgres
+      - postgresql
     environment:
       - TZ=Asia/Ho_Chi_Minh
-      - ALT_JDBC_DRIVER=org.postgresql.Driver 
-      - ALL_DB_TYPE=postgres16
+      - ALT_JDBC_DRIVER=org.postgresql.Driver
+      - ALL_DB_TYPE=postgres15
       - ALL_JDBC_URL=jdbc:postgres://postgresql:5432/${JIRA_DB_NAME}
-      - ALL_JDBC_USER= ${JIRA_DB_USER}         
-      - ALL_JDBC_PASSWORD= ${JIRA_DB_PASS} 
-      - ALL_DB_SCHEMA=public 
+      - ALL_JDBC_USER=${JIRA_DB_USER}
+      - ALL_JDBC_PASSWORD=${JIRA_DB_PASS}
+      - ALL_DB_SCHEMA=public
     networks:
       - coredev
 
+  confluence:
+    image: haxqer/confluence:9.2.1
+    container_name: confluence_vpmn
+    ports:
+      - "9090:8090"
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+    env_file:
+      - .env
+    environment:
+      - TZ=Asia/Ho_Chi_Minh
+      - CONFLUENCE_HOME=/var/confluence
+      - JVM_SUPPORT_RECOMMENDED_ARGS=-Datlassian.plugins.enable.wait=300
+      - ALL_DB_TYPE=postgres15
+      - ALL_JDBC_URL=jdbc:postgres://postgresql:5432/${CONFLUENCE_DB_NAME}
+      - ALL_JDBC_USER=${CONFLUENCE_DB_USER}
+      - ALL_JDBC_PASSWORD=${CONFLUENCE_DB_PASS}
+    volumes:
+      - confluence_data:/var/confluence
+      - ./confluence/log:/var/confluence/log
+      #- ./config.xml:/var/atlassian/application-data/confluence/config.xml
+    #depends_on:
+    #  - jira
+    networks:
+      - coredev
+    restart: unless-stopped
+
+
   postgresql:
-    image: postgres:16
+    image: postgres:15
     container_name: postgres
     restart: unless-stopped
     env_file:
       - .env
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      - TZ=Asia/Ho_Chi_Minh
+      - LANG=en_US.UTF-8
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:
@@ -67,7 +104,7 @@ services:
     command: -c config_file=/etc/postgresql/config/postgresql.conf
     networks:
       - coredev
-      
+
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin
@@ -82,8 +119,11 @@ services:
     depends_on:
       - postgresql
     networks:
-      - coredev   
+      - coredev
 
 networks:
-  coredev: 
+  coredev:
     external: true #day la network dc tao ngoai docker va ko can tao lai
+
+volumes:
+  confluence_data:
