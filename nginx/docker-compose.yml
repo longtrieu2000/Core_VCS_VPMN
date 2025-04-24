@@ -1,34 +1,38 @@
 version: "3"
 services:
   nginx:
-    image: nginx:alpine
+    build: .
     container_name: nginx_vpmn
     restart: always
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./conf.d:/etc/nginx/conf.d
       - ./log:/var/log/nginx
       - ./nginx.conf:/etc/nginx/nginx.conf
-      - .certs:/etc/nginx/certs
+      - .certs:/etc/nginx/ssl
+      - ./generate-certs.sh:/usr/local/bin/generate-certs.sh
     networks:
       - elk_coredev
+    command: ["/bin/sh", "-c", "chmod +x /usr/local/bin/generate-certs.sh && /usr/local/bin/generate-certs.sh && nginx -g 'daemon off;'"]
 
-  acme-companion:
-    image: nginxproxy/acme-companion
-    container_name: acme-companion
-    restart: always
-    depends_on:
-      - nginx
-    environment:
-      - DEFAULT_EMAIL=longth22@viettel.com.vn 
-    networks:
-      - elk_coredev
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - .certs:/ect/nginx/certs
-      - ./acme:/etc/acme.sh
+ # acme-companion:
+ #   image: nginxproxy/acme-companion
+ #  container_name: acme-companion
+ #  restart: always
+  #  depends_on:
+  #    - nginx
+  #  environment:
+  #    - DEFAULT_EMAIL=longth22@viettel.com.vn 
+  #  networks:
+  #    - elk_coredev
+  #  volumes:
+  #    - /var/run/docker.sock:/var/run/docker.sock:ro
+  #    - .certs:/ect/nginx/certs
+  #    - ./acme:/etc/acme.sh
     
 networks:
   elk_coredev:
     external: true
+

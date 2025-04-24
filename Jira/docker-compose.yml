@@ -15,6 +15,7 @@ services:
     volumes:
       - ./Jira/data:/var/jira/data
       - ./Jira/jira-config.properties:/var/jira/jira-config.properties
+      - ./Jira/server.xml:/var/jira/conf/server.xml
     depends_on:
       - postgresql
     environment:

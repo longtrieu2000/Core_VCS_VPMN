@@ -64,6 +64,7 @@ services:
     env_file:
       - .env
     environment:
+      - JIRA_PURGE_PLUGINS_ONSTART=true
       - TZ=Asia/Ho_Chi_Minh
       - CONFLUENCE_HOME=/var/confluence
       - JVM_SUPPORT_RECOMMENDED_ARGS=-Datlassian.plugins.enable.wait=300
@@ -74,6 +75,7 @@ services:
     volumes:
       - confluence_data:/var/confluence
       - ./confluence/log:/var/confluence/log
+      - ./confluence/server.xml://opt/confluence/conf/server.xml
       #- ./config.xml:/var/atlassian/application-data/confluence/config.xml
     #depends_on:
     #  - jira

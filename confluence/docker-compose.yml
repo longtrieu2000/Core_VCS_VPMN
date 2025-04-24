@@ -21,6 +21,9 @@ services:
       - ALL_JDBC_PASSWORD=${CONFLUENCE_DB_PASS} 
     volumes:
       - confluence_data:/var/confluence
+      - ./confluence/log:/var/confluence/log
+      - ./confluence/server.xml://opt/confluence/conf/server.xml
+
       #- ./config.xml:/var/atlassian/application-data/confluence/config.xml
     #depends_on:
     #  - jira
