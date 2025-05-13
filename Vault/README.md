@@ -42,6 +42,15 @@ bash
 
     vault login <ROOT_TOKEN>
 
+    
+🔹 Bật Secrets Engine (kv)
+
+Vault hỗ trợ nhiều loại secrets engine, ở đây dùng kv (Key-Value Store):
+
+bash
+
+    vault secrets enable -path=secret kv-v2
+
 🔹 Tạo User Trong Vault
 
 Vault sử dụng Userpass để quản lý user.
