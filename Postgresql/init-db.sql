@@ -14,6 +14,7 @@ GRANT ALL PRIVILEGES  on DATABASE confluence_db to confluence_user;
 alter DATABASE confluence_db owner to confluence_user;
 
 
+####chay o database vault_user######
 CREATE TABLE vault_kv_store (
   parent_path TEXT COLLATE "C" NOT NULL,
   path        TEXT COLLATE "C",
