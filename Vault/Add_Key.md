@@ -53,3 +53,11 @@ bash
 bash
 
     vault kv get secret/api_keys
+
+📌 Thêm Secrets (Lưu dữ liệu)
+
+    vault kv put secret/myapp/config username="admin" password="secrets"
+
+Kiểm thử truy cập:
+
+    vault kv get secret/myapp/config
