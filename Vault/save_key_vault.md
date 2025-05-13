@@ -1,4 +1,5 @@
 ✅ Mục tiêu:
+
 Mã hóa file .env thành .env.enc
 
 Lưu key vào secret.key
